@@ -1,0 +1,36 @@
+name: CI - Integracion Continua
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Pruebas Automatizadas (Jest & Supertest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout del codigo
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 3. Instalar dependencias limpias
+        run: npm ci
+
+      - name: 4. Ejecutar pruebas unitarias y de integracion con cobertura
+        run: npm run test:coverage
+
+      - name: 5. Subir reporte de cobertura como artefacto
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7

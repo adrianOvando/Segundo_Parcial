@@ -1,0 +1,33 @@
+{
+  "name": "segundo-parcial-cloud-libros-api",
+  "version": "1.0.0",
+  "description": "Segundo Examen Parcial COM610 - API Catálogo de Libros con EC2, RDS y CI/CD en GitHub Actions",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "jest --detectOpenHandles --forceExit",
+    "test:coverage": "jest --coverage",
+    "test:ej1": "npm --prefix ejercicio1 start",
+    "test:ej2": "npm --prefix ejercicio2 test"
+  },
+  "author": "Adrian Ovando",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 10000,
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js"
+    ]
+  }
+}

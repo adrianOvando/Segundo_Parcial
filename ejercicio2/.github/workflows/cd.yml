@@ -1,0 +1,133 @@
+name: CD - Despliegue Continuo a Amazon EC2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: 1. Pruebas Automatizadas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar dependencias limpias
+        run: npm ci
+
+      - name: Ejecutar pruebas unitarias y de integracion
+        run: npm test
+
+  build-and-push:
+    name: 2. Construir y Publicar Imagen Docker
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Iniciar sesion en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Construir y publicar imagen Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/libros-api:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/libros-api:latest
+
+  deploy:
+    name: 3. Desplegar en EC2 con Verificacion y Rollback
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ejecutar despliegue seguro en EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            IMAGE="${{ secrets.DOCKER_USERNAME }}/libros-api:${{ github.sha }}"
+            ENV_FILE="/home/${{ secrets.SSH_USER }}/.env"
+            CONTAINER_PROD="libros-api"
+            CONTAINER_TEMP="libros-api-val"
+
+            echo "=========================================================="
+            echo "Iniciando despliegue de imagen: $IMAGE"
+            echo "=========================================================="
+
+            # 1. Pull de la nueva imagen
+            echo "[Paso 1/4] Descargando imagen Docker..."
+            docker pull "$IMAGE"
+
+            # 2. Despliegue temporal en puerto 3001 (enlazado solo a 127.0.0.1)
+            echo "[Paso 2/4] Desplegando contenedor temporal para validacion..."
+            docker rm -f "$CONTAINER_TEMP" 2>/dev/null || true
+            docker run -d \
+              --name "$CONTAINER_TEMP" \
+              --env-file "$ENV_FILE" \
+              -p 127.0.0.1:3001:3000 \
+              "$IMAGE"
+
+            # 3. Esperar inicialización y verificar /health y /libros
+            echo "[Paso 3/4] Esperando inicializacion y verificando salud..."
+            sleep 6
+
+            VERIFIED=0
+            for i in {1..6}; do
+              if curl -sf http://127.0.0.1:3001/health > /dev/null && \
+                 curl -sf http://127.0.0.1:3001/libros > /dev/null; then
+                echo ">> Verificacion de /health y /libros superada con exito."
+                VERIFIED=1
+                break
+              fi
+              echo "Reintentando comprobacion ($i/6)..."
+              sleep 3
+            done
+
+            # 4. Manejo de Rollback o Promoción
+            if [ "$VERIFIED" -eq 1 ]; then
+              echo "[Paso 4/4] Promoviendo a produccion (127.0.0.1:3000)..."
+              docker rm -f "$CONTAINER_TEMP" 2>/dev/null || true
+
+              # Detener version anterior y reemplazar
+              docker stop "$CONTAINER_PROD" 2>/dev/null || true
+              docker rm "$CONTAINER_PROD" 2>/dev/null || true
+
+              docker run -d \
+                --name "$CONTAINER_PROD" \
+                --restart unless-stopped \
+                --env-file "$ENV_FILE" \
+                -p 127.0.0.1:3000:3000 \
+                "$IMAGE"
+
+              sleep 3
+              echo "Verificando endpoint en produccion:"
+              curl -s http://127.0.0.1:3000/health
+              echo ""
+              echo ">> Despliegue de version ${{ github.sha }} COMPLETADO SATISFACTORIAMENTE <<"
+              docker system prune -f 2>/dev/null || true
+            else
+              echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+              echo "FALLO LA VERIFICACION DE SALUD EN EL NUEVO CONTENEDOR."
+              echo "Abortando despliegue. La version anterior continua activa."
+              echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+              docker rm -f "$CONTAINER_TEMP" 2>/dev/null || true
+              exit 1
+            fi

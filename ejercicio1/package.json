@@ -1,0 +1,24 @@
+{
+  "name": "ejercicio1-api-libros-ec2-rds",
+  "version": "1.0.0",
+  "description": "API REST de Catálogo de Libros en Amazon EC2 con base de datos Amazon RDS",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "keywords": [
+    "express",
+    "mysql2",
+    "aws-ec2",
+    "aws-rds",
+    "rest-api"
+  ],
+  "author": "Adrian Ovando",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5"
+  }
+}
