@@ -87,8 +87,8 @@ jobs:
             echo "Iniciando sesion en GitHub Container Registry..."
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-            echo "Asegurando archivo de variables de entorno .env..."
-            if [ -f /home/ubuntu/Segundo_Parcial/ejercicio1/.env ]; then
+            echo "Verificando archivo de variables de entorno .env..."
+            if [ ! -f /home/ubuntu/.env ] && [ -f /home/ubuntu/Segundo_Parcial/ejercicio1/.env ]; then
               cp /home/ubuntu/Segundo_Parcial/ejercicio1/.env /home/ubuntu/.env
             fi
 
