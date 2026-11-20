@@ -1,6 +1,6 @@
 {
   "name": "segundo-parcial-cloud-libros-api",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Segundo Examen Parcial COM610 - API Catálogo de Libros con EC2, RDS y CI/CD en GitHub Actions",
   "main": "src/server.js",
   "scripts": {

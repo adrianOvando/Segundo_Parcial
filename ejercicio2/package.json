@@ -1,6 +1,6 @@
 {
   "name": "ejercicio2-cicd-libros-api",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "CI/CD para la API REST de Libros con pruebas automatizadas Jest, Docker y despliegue a EC2",
   "main": "src/server.js",
   "scripts": {

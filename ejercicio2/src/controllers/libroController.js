@@ -60,7 +60,7 @@ const libroController = {
     res.status(200).json({
       status: "ok",
       service: "API Catálogo de Libros",
-      version: process.env.APP_VERSION || "1.0.0",
+      version: process.env.APP_VERSION || "1.1.0",
       uptime: process.uptime(),
       timestamp: new Date().toISOString()
     });

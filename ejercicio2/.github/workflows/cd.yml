@@ -87,13 +87,19 @@ jobs:
             echo "Iniciando sesion en GitHub Container Registry..."
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
+            echo "Asegurando archivo de variables de entorno .env..."
+            if [ -f /home/ubuntu/Segundo_Parcial/ejercicio1/.env ]; then
+              cp /home/ubuntu/Segundo_Parcial/ejercicio1/.env /home/ubuntu/.env
+            fi
+
             echo "Guardando referencia a version previa para rollback..."
             OLD_IMAGE=$(docker inspect --format='{{.Config.Image}}' libros-api 2>/dev/null || echo "")
 
             echo "Descargando nueva imagen: $IMAGE"
             docker pull "$IMAGE"
 
-            echo "Deteniendo contenedor actual..."
+            echo "Deteniendo contenedor o proceso previo..."
+            pm2 delete all 2>/dev/null || true
             docker rm -f libros-api 2>/dev/null || true
 
             echo "Iniciando nuevo contenedor en 127.0.0.1:3000..."
@@ -102,13 +108,20 @@ jobs:
               --env-file /home/ubuntu/.env \
               "$IMAGE"
 
-            echo "Esperando 5 segundos a que estabilice..."
-            sleep 5
+            echo "Esperando 6 segundos a que estabilice..."
+            sleep 6
 
             echo "Ejecutando verificacion de salud y consulta de datos..."
-            if ! curl -fsS http://127.0.0.1:3000/health || ! curl -fsS http://127.0.0.1:3000/libros; then
+            HEALTH_CHECK=0
+            if curl -fsS http://127.0.0.1:3000/health && curl -fsS http://127.0.0.1:3000/libros > /dev/null; then
+              HEALTH_CHECK=1
+            fi
+
+            if [ "$HEALTH_CHECK" -ne 1 ]; then
               echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-              echo "Falló la verificación, restaurando versión anterior..."
+              echo "Falló la verificación. Mostrando logs del contenedor:"
+              docker logs libros-api || true
+              echo "Restaurando versión anterior..."
               echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
               docker rm -f libros-api 2>/dev/null || true
               if [ -n "$OLD_IMAGE" ]; then
