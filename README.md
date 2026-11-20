@@ -1,4 +1,4 @@
-# Segundo Examen Parcial — Trabajando en la Nube (COM610)
+# Segundo Examen Parcial — Trabajo en la Nube (COM610)
 
 **Universidad San Francisco Xavier de Chuquisaca**  
 **Facultad de Tecnologia — Carrera de Ingenieria de Sistemas**  
