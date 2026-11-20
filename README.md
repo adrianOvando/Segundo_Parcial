@@ -11,7 +11,8 @@
 
 ## 📌 Enlaces Rápidos de Verificación
 
-* **URL Pública de la API (EC2 / Nginx):** `http://<EC2_PUBLIC_IP>/health` | `http://<EC2_PUBLIC_IP>/libros`
+* **URL Pública de la API (EC2 / Nginx):** [http://18.213.236.16/health](http://18.213.236.16/health) | [http://18.213.236.16/libros](http://18.213.236.16/libros)
+* **IP Pública de la Instancia EC2:** `18.213.236.16`
 * **Workflow de CI Exitoso (GitHub Actions):** [Ver Ejecuciones de CI](https://github.com/adrianOvando/Segundo_Parcial/actions/workflows/ci.yml)
 * **Workflow de CD Exitoso (GitHub Actions):** [Ver Ejecuciones de CD](https://github.com/adrianOvando/Segundo_Parcial/actions/workflows/cd.yml)
 * **Carpeta de Evidencias:** [`evidencias/`](./evidencias/)
