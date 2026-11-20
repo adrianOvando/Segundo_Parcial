@@ -1,15 +1,15 @@
 -- ==========================================================
 -- Segundo Examen Parcial - Trabajando en la Nube (COM610)
--- Script de Base de Datos para Amazon RDS (MySQL / MariaDB)
--- Entidad: Libros
+-- Script de Base de Datos para Amazon RDS (MySQL 8.4)
+-- Entidad: Libros | Base de datos: libros_db
 -- ==========================================================
 
 -- Crear la base de datos si no existe
-CREATE DATABASE IF NOT EXISTS biblioteca 
+CREATE DATABASE IF NOT EXISTS libros_db 
   CHARACTER SET utf8mb4 
   COLLATE utf8mb4_unicode_ci;
 
-USE biblioteca;
+USE libros_db;
 
 -- Crear tabla libros
 CREATE TABLE IF NOT EXISTS libros (

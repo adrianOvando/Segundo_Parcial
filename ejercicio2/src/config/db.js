@@ -1,13 +1,13 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// Pool de conexiones a MySQL / MariaDB en Amazon RDS
+// Pool de conexiones a MySQL 8.4 en Amazon RDS
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '3306', 10),
-  user: process.env.DB_USER || 'root',
+  user: process.env.DB_USER || 'admin',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'biblioteca',
+  database: process.env.DB_NAME || 'libros_db',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
